@@ -15,6 +15,7 @@ public class MyPhoneReceiver extends BroadcastReceiver {
 
     private String phoneNumber;
 
+
     @Override
     public void onReceive(Context context, Intent intent) {
         phoneNumber = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER);

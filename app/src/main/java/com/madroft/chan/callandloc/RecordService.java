@@ -5,10 +5,12 @@ package com.madroft.chan.callandloc;
  */
 import java.io.IOException;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.MediaRecorder;
 import android.media.MediaRecorder.OnErrorListener;
 import android.media.MediaRecorder.OnInfoListener;
@@ -18,7 +20,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 public class RecordService extends Service {
-
+    private static final String PREFERENCE_NAME = "MyPreferenceFileName";
     private MediaRecorder recorder = null;
     private String phoneNumber = null;
 
@@ -164,9 +166,25 @@ public class RecordService extends Service {
         if (recorderStopped) {
             // process to be performed after recording stopped
             Toast toast = Toast.makeText(this,
-                    this.getString(R.string.receiver_end_call),
+                    fileName,
                     Toast.LENGTH_SHORT);
             toast.show();
+            Toast toast1 = Toast.makeText(this,
+                    this.getString(R.string.receiver_end_call),
+                    Toast.LENGTH_SHORT);
+            toast1.show();
+
+            if(FileHelper.isrecordavailable())
+            {
+                FileHelper.zip();
+                SharedPreferences settings=getSharedPreferences(PREFERENCE_NAME, Activity.MODE_PRIVATE);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putBoolean("needupload", true);
+                editor.apply();
+                startService(new Intent(this,uploadservice.class));
+
+            }
+
         }
     }
 
@@ -188,7 +206,9 @@ public class RecordService extends Service {
             recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
             recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
             fileName = FileHelper.getFilename(phoneNumber);
+
             recorder.setOutputFile(fileName);
+
 
             OnErrorListener errorListener = new OnErrorListener() {
                 public void onError(MediaRecorder arg0, int arg1, int arg2) {

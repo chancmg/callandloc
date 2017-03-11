@@ -2,8 +2,10 @@ package com.madroft.chan.callandloc;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.net.ConnectivityManager;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,11 +16,17 @@ public class MainActivity extends AppCompatActivity {
     private static final int CATEGORY_DETAIL = 1;
     private static final int NO_MEMORY_CARD = 2;
     private static final int TERMS = 3;
+    private static final String PREFERENCE_NAME = "MyPreferenceFileName";
+    NetworkChangeReceiver receiver=new NetworkChangeReceiver();
+    IntentFilter filter=new IntentFilter();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         context = this.getBaseContext();
+     filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(receiver,filter);
         SharedPreferences settings = this.getSharedPreferences(
                 Constants.LISTEN_ENABLED, 0);
         SharedPreferences.Editor editor = settings.edit();
@@ -59,5 +67,11 @@ public class MainActivity extends AppCompatActivity {
                         : Constants.RECORDING_ENABLED);
         myIntent.putExtra("silentMode", silentMode);
         context.startService(myIntent);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unregisterReceiver(receiver);
     }
 }
