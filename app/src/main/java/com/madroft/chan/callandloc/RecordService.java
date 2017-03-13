@@ -10,10 +10,12 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.media.MediaRecorder;
 import android.media.MediaRecorder.OnErrorListener;
 import android.media.MediaRecorder.OnInfoListener;
+import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -29,7 +31,7 @@ public class RecordService extends Service {
     private boolean recording = false;
     private boolean silentMode = false;
     private boolean onForeground = false;
-
+    NetworkChangeReceiver receiver=new NetworkChangeReceiver();
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -38,6 +40,9 @@ public class RecordService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        final IntentFilter filter=new IntentFilter();
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        this.registerReceiver(receiver,filter);
     }
 
     @Override
@@ -193,6 +198,7 @@ public class RecordService extends Service {
         Log.d(Constants.TAG, "RecordService onDestroy");
         stopAndReleaseRecorder();
         stopService();
+        this.unregisterReceiver(receiver);
         super.onDestroy();
     }
 

@@ -24,9 +24,11 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
         ConnectivityManager conn =  (ConnectivityManager)
                 context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = conn.getActiveNetworkInfo();
+      //  Log.d(" reciever network info:",networkInfo.toString());
         SharedPreferences settings = context.getSharedPreferences(
                 PREFERENCE_NAME, Activity.MODE_PRIVATE);
         boolean needupload=settings.getBoolean("needupload",true);
+        Log.d(" reciever needupload:",Boolean.toString(needupload));
         if(networkInfo!=null && networkInfo.isConnected()&& needupload)
         {
                 Log.d(Constants.TAG,"net connected");

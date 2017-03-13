@@ -2,6 +2,7 @@ package com.madroft.chan.callandloc;
 
 import android.app.Activity;
 import android.app.Service;
+import android.app.SharedElementCallback;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -39,21 +40,32 @@ public class uploadservice extends Service {
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public void onCreate() {
+        super.onCreate();
         ConnectivityManager conn =  (ConnectivityManager)
                 this.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = conn.getActiveNetworkInfo();
 
         if(networkInfo!=null)
         {
+            Toast toast = Toast.makeText(this,
+                    "started uploading",
+                    Toast.LENGTH_SHORT);
+            toast.show();
             new uploadTask().execute();
-
         }
         else
         {
+            Toast toast = Toast.makeText(this,
+                    "No network,upload will start once network connected",
+                    Toast.LENGTH_SHORT);
+            toast.show();
             stopSelf();
         }
+    }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -64,6 +76,8 @@ public class uploadservice extends Service {
     }
 
     class uploadTask extends AsyncTask<String, Void, String> {
+        SharedPreferences settings=getSharedPreferences(PREFERENCE_NAME,Activity.MODE_PRIVATE);
+        private int uploadcount=settings.getInt("count",1);
         @Override
         protected String doInBackground(String... params) {
             /*try {
@@ -79,12 +93,14 @@ public class uploadservice extends Service {
                 String t = "Failure : " + e.getLocalizedMessage();
                 return t;
             }*/
+
             FTPClient con = null;
             String status="no success";
 
+
             try
             {
-               /* con = new FTPClient();
+                /*con = new FTPClient();
                 con.connect(InetAddress.getByName("128.199.179.78"));
 
                 if (con.login("tevatel", "tevatel"))
@@ -97,9 +113,11 @@ public class uploadservice extends Service {
                     con.enterLocalPassiveMode(); // important!
                     con.setFileType(FTP.BINARY_FILE_TYPE);
                     String data = getFilePath() + "/" + "temp.zip";
-
+                    Log.d("uploading","true");
                     FileInputStream in = new FileInputStream(new File(data));
-                    boolean result = con.storeFile("/temp.zip", in);
+                    String filename="/user1record"+Integer.toString(uploadcount)+".zip";
+                    Log.d("Filename:",filename);
+                    boolean result = con.storeFile(filename, in);
                     in.close();
                     if (result) {
                         Log.v("upload result", "succeeded");
@@ -112,8 +130,12 @@ public class uploadservice extends Service {
             }
             catch (Exception e)
             {
+
                 String t = "Failure : " + e.getLocalizedMessage();
+                Log.d("upload error",t);
+                stopSelf();
                 return t;
+
             }
         }
 
@@ -123,9 +145,9 @@ public class uploadservice extends Service {
             if(s.contentEquals("Upload Successful")){
 
                 Log.d(Constants.TAG,"upload sucess");
-                SharedPreferences settings=getSharedPreferences(PREFERENCE_NAME, Activity.MODE_PRIVATE);
                 SharedPreferences.Editor editor = settings.edit();
                 editor.putBoolean("needupload", false);
+                editor.putInt("count",uploadcount+1);
                 editor.apply();
                 FileHelper.deleteAllRecords();
                 stopSelf();

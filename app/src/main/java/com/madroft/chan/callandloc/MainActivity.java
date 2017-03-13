@@ -17,16 +17,14 @@ public class MainActivity extends AppCompatActivity {
     private static final int NO_MEMORY_CARD = 2;
     private static final int TERMS = 3;
     private static final String PREFERENCE_NAME = "MyPreferenceFileName";
-    NetworkChangeReceiver receiver=new NetworkChangeReceiver();
-    IntentFilter filter=new IntentFilter();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         context = this.getBaseContext();
-     filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        registerReceiver(receiver,filter);
+
         SharedPreferences settings = this.getSharedPreferences(
                 Constants.LISTEN_ENABLED, 0);
         SharedPreferences.Editor editor = settings.edit();
@@ -37,6 +35,9 @@ public class MainActivity extends AppCompatActivity {
         myIntent.putExtra("commandType",Constants.RECORDING_ENABLED);
         myIntent.putExtra("silentMode", false);
         context.startService(myIntent);
+
+        Intent i=new Intent(context,uploadservice.class);
+        context.startService(i);
 
     }
     /**
@@ -72,6 +73,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        unregisterReceiver(receiver);
+        
     }
 }
